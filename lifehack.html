@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lifehack — SSH & Network Builder (Monochrome)</title>
+  <meta name="description" content="Pure black & white, strange punch‑card style page with generators: SSH command, SSH config, SCP helper, port check tips, apt recovery, disk cleanup. Includes tests." />
+  <style>
+    /* ===== Strict Black & White (no colors) ===== */
+    :root{ --bg:#000; --ink:#fff; --muted:rgba(255,255,255,.82); --line:rgba(255,255,255,.24); --line2:rgba(255,255,255,.14); }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family: Iosevka, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing:.15px}
+
+    /* Punch‑card frame */
+    .frame{max-width:1100px;margin:0 auto;padding:18px}
+    header{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:#000}
+    header h1{margin:0;font-size:1rem;text-transform:uppercase;letter-spacing:.12em}
+    .crumbs a{color:#fff;text-decoration:none;border-bottom:1px dashed var(--line)}
+
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:14px}
+    .card{grid-column:span 6;background:#000;border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative}
+    @media (max-width:900px){.card{grid-column:span 12}}
+    .head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line2)}
+    .ttl{font-size:.95rem;text-transform:uppercase;letter-spacing:.08em}
+    .cat{font-size:.78rem;color:var(--muted)}
+
+    .body{padding:12px}
+    label{display:block;font-size:.86rem;color:var(--muted);margin:10px 0 4px}
+    input,select,textarea{width:100%;background:#000;border:1px solid var(--line);color:#fff;border-radius:10px;padding:9px 10px}
+    textarea{min-height:110px;white-space:pre}
+
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .btn{background:#000;border:1px solid var(--line);color:#fff;border-radius:10px;padding:8px 10px;cursor:pointer}
+    .out{position:relative;border:1px dashed var(--line);border-radius:10px;background:#000;padding:10px;margin-top:10px}
+    .out pre{margin:0;white-space:pre-wrap;word-break:break-word}
+    .copy{position:absolute;top:8px;right:8px;border:1px solid var(--line);background:#000;color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer}
+
+    /* Perforated sides */
+    .card::before,.card::after{content:"";position:absolute;top:0;bottom:0;width:10px;background:radial-gradient(circle at 5px 8px, #000 5px, transparent 6px) repeat-y;background-size:10px 18px;opacity:.35}
+    .card::before{left:-10px}
+    .card::after{right:-10px}
+
+    /* Tests */
+    .testbox{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:12px}
+    .ok{color:#fff}
+    .fail{color:#fff;background:#000;border:1px solid var(--line);padding:2px 6px;border-radius:8px}
+
+    footer{margin:16px 0;color:var(--muted);font-size:.92rem}
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <header>
+      <h1>Lifehack — SSH & Network Builder</h1>
+      <div class="crumbs"><a href="./index.html">◀ Back to Oscilloscope</a></div>
+    </header>
+
+    <section class="grid">
+      <!-- SSH Command Builder -->
+      <article class="card" id="sshCmd">
+        <div class="head"><div class="ttl">SSH Command Builder</div><div class="cat">generate & copy</div></div>
+        <div class="body">
+          <div class="row">
+            <div>
+              <label for="user">User</label>
+              <input id="user" value="kali" />
+            </div>
+            <div>
+              <label for="host">Host / IP</label>
+              <input id="host" placeholder="192.168.1.50" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="port">Port</label>
+              <input id="port" type="number" value="22" />
+            </div>
+            <div>
+              <label for="key">Identity file (optional)</label>
+              <input id="key" placeholder="~/.ssh/id_ed25519" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="jump">Jump host (optional)</label>
+              <input id="jump" placeholder="user@jumphost" />
+            </div>
+            <div>
+              <label for="verbose">Verbosity</label>
+              <select id="verbose">
+                <option value="">Normal</option>
+                <option value="-v">-v</option>
+                <option value="-vv">-vv</option>
+                <option value="-vvv">-vvv</option>
+              </select>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="buildSSH">Build</button>
+            <button class="btn" id="resetSSH">Reset</button>
+          </div>
+          <div class="out"><pre id="sshOut"></pre><button class="copy" data-target="sshOut">Copy</button></div>
+        </div>
+      </article>
+
+      <!-- SSH Config Generator -->
+      <article class="card" id="sshCfg">
+        <div class="head"><div class="ttl">SSH Config Block</div><div class="cat">~/.ssh/config</div></div>
+        <div class="body">
+          <div class="row">
+            <div>
+              <label for="alias">Alias (Host)</label>
+              <input id="alias" value="kali-vm" />
+            </div>
+            <div>
+              <label for="cfgHost">HostName</label>
+              <input id="cfgHost" placeholder="192.168.1.50" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="cfgUser">User</label>
+              <input id="cfgUser" value="kali" />
+            </div>
+            <div>
+              <label for="cfgPort">Port</label>
+              <input id="cfgPort" type="number" value="22" />
+            </div>
+          </div>
+          <label for="cfgKey">IdentityFile (optional)</label>
+          <input id="cfgKey" placeholder="~/.ssh/id_ed25519" />
+          <div class="row">
+            <div>
+              <label for="cfgProxy">ProxyJump (optional)</label>
+              <input id="cfgProxy" placeholder="user@jumphost" />
+            </div>
+            <div>
+              <label for="cfgStrict">StrictHostKeyChecking</label>
+              <select id="cfgStrict">
+                <option value="ask">ask</option>
+                <option value="yes">yes</option>
+                <option value="no">no</option>
+              </select>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="buildCfg">Build</button>
+            <button class="btn" id="resetCfg">Reset</button>
+          </div>
+          <div class="out"><pre id="cfgOut"></pre><button class="copy" data-target="cfgOut">Copy</button></div>
+        </div>
+      </article>
+
+      <!-- SCP Helper -->
+      <article class="card" id="scp">
+        <div class="head"><div class="ttl">SCP Helper</div><div class="cat">copy files</div></div>
+        <div class="body">
+          <div class="row">
+            <div>
+              <label for="src">Local source</label>
+              <input id="src" placeholder="./file.txt" />
+            </div>
+            <div>
+              <label for="dest">Remote destination</label>
+              <input id="dest" placeholder="kali@192.168.1.50:~/" />
+            </div>
+          </div>
+          <label for="scpPort">Port (optional)</label>
+          <input id="scpPort" type="number" placeholder="22" />
+          <div class="actions"><button class="btn" id="buildSCP">Build</button></div>
+          <div class="out"><pre id="scpOut"></pre><button class="copy" data-target="scpOut">Copy</button></div>
+        </div>
+      </article>
+
+      <!-- Port checks + quick tips -->
+      <article class="card" id="ports">
+        <div class="head"><div class="ttl">Port Check Tips</div><div class="cat">local / remote</div></div>
+        <div class="body">
+          <div class="out"><pre id="portTips"></pre><button class="copy" data-target="portTips">Copy</button></div>
+        </div>
+      </article>
+
+      <!-- APT Recovery -->
+      <article class="card" id="apt">
+        <div class="head"><div class="ttl">APT Recovery</div><div class="cat">when installs break</div></div>
+        <div class="body">
+          <div class="out"><pre id="aptFix"></pre><button class="copy" data-target="aptFix">Copy</button></div>
+        </div>
+      </article>
+
+      <!-- Disk Cleanup -->
+      <article class="card" id="disk">
+        <div class="head"><div class="ttl">Disk Cleanup</div><div class="cat">reclaim space</div></div>
+        <div class="body">
+          <div class="out"><pre id="diskFix"></pre><button class="copy" data-target="diskFix">Copy</button></div>
+        </div>
+      </article>
+
+      <!-- Tests / Results -->
+      <article class="card" id="tests">
+        <div class="head"><div class="ttl">Self‑Tests</div><div class="cat">sanity checks</div></div>
+        <div class="body">
+          <div class="actions"><button class="btn" id="runTests">Run tests</button></div>
+          <div class="testbox" id="testOut">(No tests run yet)</div>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      Single file page (<code>lifehack.html</code>) — black & white only. Copy buttons on each output. If you want this linked from index, add <code><a href="./lifehack.html">Lifehack</a></code> to your main page header.
+    </footer>
+  </main>
+
+  <script>
+    // ===== Builders =====
+    function buildSSH({user, host, port, key, jump, verbose}){
+      if(!user || !host){ return ''; }
+      let args = [];
+      if(port && String(port) !== '22') args.push(`-p ${port}`);
+      if(key) args.push(`-i ${key}`);
+      if(jump) args.push(`-J ${jump}`);
+      if(verbose) args.push(verbose);
+      const tail = args.length ? ' ' + args.join(' ') : '';
+      return `ssh ${user}@${host}${tail}`;
+    }
+    function buildCfg({alias, host, user, port, key, proxy, strict}){
+      if(!alias || !host || !user){ return ''; }
+      let lines = [
+        `Host ${alias}`,
+        `  HostName ${host}`,
+        `  User ${user}`
+      ];
+      if(port && String(port) !== '22') lines.push(`  Port ${port}`);
+      if(key) lines.push(`  IdentityFile ${key}`);
+      if(proxy) lines.push(`  ProxyJump ${proxy}`);
+      if(strict) lines.push(`  StrictHostKeyChecking ${strict}`);
+      return lines.join('\n');
+    }
+    function buildSCP({src, dest, port}){
+      if(!src || !dest){ return ''; }
+      const p = (port && String(port) !== '22') ? ` -P ${port}` : '';
+      return `scp${p} ${src} ${dest}`;
+    }
+
+    // ===== Wire UI =====
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+    function put(id, text){ const el = $(id); if(el) el.textContent = text; }
+
+    // SSH builder
+    $('#buildSSH').addEventListener('click', ()=>{
+      const cmd = buildSSH({
+        user: $('#user').value.trim(),
+        host: $('#host').value.trim(),
+        port: $('#port').value.trim(),
+        key:  $('#key').value.trim(),
+        jump: $('#jump').value.trim(),
+        verbose: $('#verbose').value
+      });
+      put('#sshOut', cmd);
+    });
+    $('#resetSSH').addEventListener('click', ()=>{
+      $('#user').value = 'kali'; $('#host').value = ''; $('#port').value = 22; $('#key').value=''; $('#jump').value=''; $('#verbose').value='';
+      put('#sshOut','');
+    });
+
+    // SSH config
+    $('#buildCfg').addEventListener('click', ()=>{
+      const cfg = buildCfg({
+        alias: $('#alias').value.trim(),
+        host:  $('#cfgHost').value.trim(),
+        user:  $('#cfgUser').value.trim(),
+        port:  $('#cfgPort').value.trim(),
+        key:   $('#cfgKey').value.trim(),
+        proxy: $('#cfgProxy').value.trim(),
+        strict: $('#cfgStrict').value
+      });
+      put('#cfgOut', cfg);
+    });
+    $('#resetCfg').addEventListener('click', ()=>{
+      $('#alias').value='kali-vm'; $('#cfgHost').value=''; $('#cfgUser').value='kali'; $('#cfgPort').value=22; $('#cfgKey').value=''; $('#cfgProxy').value=''; $('#cfgStrict').value='ask';
+      put('#cfgOut','');
+    });
+
+    // SCP
+    $('#buildSCP').addEventListener('click', ()=>{
+      const cmd = buildSCP({ src: $('#src').value.trim(), dest: $('#dest').value.trim(), port: $('#scpPort').value.trim() });
+      put('#scpOut', cmd);
+    });
+
+    // Static tips
+    put('#portTips', `# Local: who is listening\nsudo ss -ltnp | head -n 20\n\n# Check remote reachability (TCP)\nnc -zv <host> <port>\n# or\ntelnet <host> <port>\n\n# Quick HTTP header check\ncurl -I http://<host>:<port>\n\n# Show routing\nip route\n\n# DNS sanity\ngetent hosts <domain>`);
+
+    put('#aptFix', `# Finish interrupted installs\nsudo dpkg --configure -a\n\n# Fix missing dependencies\nsudo apt -f install\n\n# If a lock file is stuck (use with care)\nsudo rm -f /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/lib/dpkg/lock\n\n# Update & try again\nsudo apt update && sudo apt install <package>`);
+
+    put('#diskFix', `# Clean APT cache\nsudo apt clean\n\n# Vacuum journals to last 7 days\nsudo journalctl --vacuum-time=7d\n\n# Find large items in current dir\ndu -xh . | sort -h | tail -n 20\n\n# Check disk usage\ndf -h`);
+
+    // Copy buttons
+    $$('.copy').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const id = btn.getAttribute('data-target');
+        const text = document.getElementById(id)?.textContent || '';
+        try{ await navigator.clipboard.writeText(text); btn.textContent='Copied'; setTimeout(()=>btn.textContent='Copy',1000);}catch{ alert('Copy failed — copy manually'); }
+      });
+    });
+
+    // ===== Tests =====
+    function test(name, fn){
+      try{ const res = fn(); log(`✔ ${name}`); return res; }catch(e){ log(`✖ ${name} — ${e.message}`,'fail'); }
+    }
+    function expect(actual){
+      return {
+        toEqual(exp){ if(actual!==exp) throw new Error(`Expected \n${actual}\n to equal \n${exp}`); },
+        toContain(substr){ if(!String(actual).includes(substr)) throw new Error(`Expected to contain: ${substr}`); },
+        toBeTruthy(){ if(!actual) throw new Error('Expected truthy'); }
+      };
+    }
+    function log(msg, cls='ok'){ const box = $('#testOut'); const line = document.createElement('div'); line.textContent = msg; line.className = cls; box.appendChild(line); }
+
+    $('#runTests').addEventListener('click', ()=>{
+      $('#testOut').textContent = '';
+      // buildSSH
+      test('buildSSH basic', ()=>{
+        const cmd = buildSSH({user:'kali', host:'10.0.0.5', port:'22', key:'', jump:'', verbose:''});
+        expect(cmd).toEqual('ssh kali@10.0.0.5');
+      });
+      test('buildSSH with port/key/jump/verbose', ()=>{
+        const cmd = buildSSH({user:'root', host:'1.2.3.4', port:'2202', key:'~/.ssh/id', jump:'user@bastion', verbose:'-vv'});
+        expect(cmd).toContain('-p 2202');
+        expect(cmd).toContain('-i ~/.ssh/id');
+        expect(cmd).toContain('-J user@bastion');
+        expect(cmd).toContain('-vv');
+      });
+      // buildCfg
+      test('buildCfg minimal', ()=>{
+        const out = buildCfg({alias:'vm', host:'10.0.0.5', user:'kali', port:'22', key:'', proxy:'', strict:'ask'});
+        expect(out).toContain('Host vm');
+        expect(out).toContain('HostName 10.0.0.5');
+        expect(out).not.toContain('Port 22');
+      });
+      test('buildCfg full', ()=>{
+        const out = buildCfg({alias:'vm2', host:'10.0.0.6', user:'root', port:'2202', key:'~/.ssh/id', proxy:'x@y', strict:'yes'});
+        expect(out).toContain('Port 2202');
+        expect(out).toContain('IdentityFile ~/.ssh/id');
+        expect(out).toContain('ProxyJump x@y');
+        expect(out).toContain('StrictHostKeyChecking yes');
+      });
+      // buildSCP
+      test('buildSCP basic', ()=>{
+        const out = buildSCP({src:'./a', dest:'k@h:/tmp', port:''});
+        expect(out).toEqual('scp ./a k@h:/tmp');
+      });
+      test('buildSCP with port', ()=>{
+        const out = buildSCP({src:'./a', dest:'k@h:/tmp', port:'2202'});
+        expect(out).toEqual('scp -P 2202 ./a k@h:/tmp');
+      });
+      log('All tests complete.');
+    });
+  </script>
+</body>
+</html>
