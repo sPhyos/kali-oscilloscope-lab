@@ -1,244 +1,501 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kali Oscilloscope Lab — Strange Monochrome UI</title>
-  <meta name="description" content="A very unusual black-&-white console for Kali beginners: orbital dial + tearable tickets + oscilloscope background. Copyable commands. Iosevka font." />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.0.17/index.min.css">
-  <style>
-    /* === Pure Black & White (with translucent grays only from opacity) === */
-    :root{
-      --bg:#000; --ink:#fff; --muted:rgba(255,255,255,.78); --line:rgba(255,255,255,.22); --line2:rgba(255,255,255,.12);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:#000;color:var(--ink);font-family:"Iosevka", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;letter-spacing:.15px;cursor:crosshair}
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kali Oscilloscope Lab — Strange Monochrome UI</title>
+    <meta name="description"
+        content="A very unusual black-&-white console for Kali beginners: orbital dial + tearable tickets + oscilloscope background. Copyable commands. Iosevka font." />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5.0.17/index.min.css">
+    <style>
+        /* === Pure Black & White (with translucent grays only from opacity) === */
+        :root {
+            --bg: #000;
+            --ink: #fff;
+            --muted: rgba(255, 255, 255, .78);
+            --line: rgba(255, 255, 255, .22);
+            --line2: rgba(255, 255, 255, .12);
+        }
 
-    /* Oscilloscope canvas background */
-    #scope{position:fixed;inset:0;z-index:-3;background:#000}
+        * {
+            box-sizing: border-box
+        }
 
-    /* Subtle grid lines on top of scope */
-    .grid{position:fixed;inset:0;z-index:-2;background:
-      linear-gradient(transparent 23px, rgba(255,255,255,.06) 24px) 0 0/100% 24px,
-      linear-gradient(90deg, transparent 23px, rgba(255,255,255,.06) 24px) 0 0/24px 100%}
+        html,
+        body {
+            height: 100%
+        }
 
-    .wrap{max-width:1200px;margin:0 auto;padding:18px}
+        body {
+            margin: 0;
+            background: #000;
+            color: var(--ink);
+            font-family: "Iosevka", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            letter-spacing: .15px;
+            cursor: crosshair
+        }
 
-    /* Header strip */
-    .top{display:flex;gap:12px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:#000}
-    .brand{display:flex;gap:10px;align-items:center}
-    .brand h1{margin:0;font-size:1rem;text-transform:uppercase;letter-spacing:.12em}
-    .sub{color:var(--muted);font-size:.9rem}
+        /* Oscilloscope canvas background */
+        #scope {
+            position: fixed;
+            inset: 0;
+            z-index: -3;
+            background: #000
+        }
 
-    /* Layout: left orbital dial + right ticket wall */
-    .cols{display:grid;grid-template-columns:320px 1fr;gap:16px;margin-top:14px}
-    @media (max-width:1000px){.cols{grid-template-columns:1fr}}
+        /* Subtle grid lines on top of scope */
+        .grid {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background:
+                linear-gradient(transparent 23px, rgba(255, 255, 255, .06) 24px) 0 0/100% 24px,
+                linear-gradient(90deg, transparent 23px, rgba(255, 255, 255, .06) 24px) 0 0/24px 100%
+        }
 
-    /* Orbital dial */
-    .dial{position:sticky;top:14px;align-self:start;border:1px solid var(--line);border-radius:16px;padding:14px;background:#000}
-    .dial .face{width:100%;aspect-ratio:1;border:1px dashed var(--line);border-radius:50%;position:relative}
-    .orb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;font-size:.8rem}
-    .sat{position:absolute;transform:translate(-50%,-50%);padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#000;color:#fff;cursor:pointer}
-    .sat:hover{box-shadow:0 0 0 4px rgba(255,255,255,.06)}
-    .dial .bar{display:flex;gap:8px;margin-top:12px}
-    .btn{flex:1;background:#000;border:1px solid var(--line);color:#fff;border-radius:10px;padding:8px 10px;cursor:pointer}
+        .wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 18px
+        }
 
-    /* Ticket wall */
-    .wall{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-    .ticket{grid-column:span 6;background:#000;border:1px solid var(--line);border-radius:14px;position:relative;overflow:hidden}
-    @media (max-width:900px){.ticket{grid-column:span 12}}
-    .head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line2)}
-    .ttl{font-size:.95rem;text-transform:uppercase;letter-spacing:.08em}
-    .cat{font-size:.75rem;color:var(--muted)}
+        /* Header strip */
+        .top {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: #000
+        }
 
-    /* Perforation + tear effect */
-    .body{padding:12px;background:repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 3px)}
-    .perforate{height:10px;background:radial-gradient(circle at 12px 5px, #000 6px, transparent 7px) repeat-x;background-size:24px 10px;border-top:1px dashed var(--line2)}
+        .brand {
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
 
-    .cmdwrap{position:relative;border:1px dashed var(--line);border-radius:10px;background:#000;padding:10px}
-    .cmdwrap pre{margin:0;white-space:pre-wrap;word-break:break-word}
-    .copy{position:absolute;top:8px;right:8px;border:1px solid var(--line);background:#000;color:#fff;padding:6px 10px;border-radius:10px;cursor:pointer}
-    .note{color:var(--muted);font-size:.9rem;margin-top:8px}
+        .brand h1 {
+            margin: 0;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: .12em
+        }
 
-    /* Modal (ticket blown up) */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;padding:20px}
-    .modal .paper{max-width:760px;width:min(92vw,760px);background:#000;border:1px solid var(--line);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.8);overflow:hidden}
-    .paper .head{border-bottom:1px solid var(--line)}
-    .x{position:absolute;top:14px;right:16px;border:1px solid var(--line);background:#000;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer}
+        .sub {
+            color: var(--muted);
+            font-size: .9rem
+        }
 
-    /* ASCII hoodie block */
-    .ascii{font-size:10px;line-height:10px;white-space:pre;color:#fff;opacity:.7;overflow:auto;padding:10px;border:1px solid var(--line);border-radius:12px;background:#000}
+        /* Layout: left orbital dial + right ticket wall */
+        .cols {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 16px;
+            margin-top: 14px
+        }
 
-    footer{margin:16px 0;color:var(--muted);font-size:.92rem}
-  </style>
-  <a href="./lifehack.html">Lifehack</a>
+        @media (max-width:1000px) {
+            .cols {
+                grid-template-columns: 1fr
+            }
+        }
+
+        /* Orbital dial */
+        .dial {
+            position: sticky;
+            top: 14px;
+            align-self: start;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 14px;
+            background: #000
+        }
+
+        .dial .face {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 1px dashed var(--line);
+            border-radius: 50%;
+            position: relative
+        }
+
+        .orb {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 64px;
+            height: 64px;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: .8rem
+        }
+
+        .sat {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: #000;
+            color: #fff;
+            cursor: pointer
+        }
+
+        .sat:hover {
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, .06)
+        }
+
+        .dial .bar {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px
+        }
+
+        .btn {
+            flex: 1;
+            background: #000;
+            border: 1px solid var(--line);
+            color: #fff;
+            border-radius: 10px;
+            padding: 8px 10px;
+            cursor: pointer
+        }
+
+        /* Ticket wall */
+        .wall {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 12px
+        }
+
+        .ticket {
+            grid-column: span 6;
+            background: #000;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            position: relative;
+            overflow: hidden
+        }
+
+        @media (max-width:900px) {
+            .ticket {
+                grid-column: span 12
+            }
+        }
+
+        .head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--line2)
+        }
+
+        .ttl {
+            font-size: .95rem;
+            text-transform: uppercase;
+            letter-spacing: .08em
+        }
+
+        .cat {
+            font-size: .75rem;
+            color: var(--muted)
+        }
+
+        /* Perforation + tear effect */
+        .body {
+            padding: 12px;
+            background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .05) 0 1px, transparent 1px 3px)
+        }
+
+        .perforate {
+            height: 10px;
+            background: radial-gradient(circle at 12px 5px, #000 6px, transparent 7px) repeat-x;
+            background-size: 24px 10px;
+            border-top: 1px dashed var(--line2)
+        }
+
+        .cmdwrap {
+            position: relative;
+            border: 1px dashed var(--line);
+            border-radius: 10px;
+            background: #000;
+            padding: 10px
+        }
+
+        .cmdwrap pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word
+        }
+
+        .copy {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            border: 1px solid var(--line);
+            background: #000;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 10px;
+            cursor: pointer
+        }
+
+        .note {
+            color: var(--muted);
+            font-size: .9rem;
+            margin-top: 8px
+        }
+
+        /* Modal (ticket blown up) */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .modal .paper {
+            max-width: 760px;
+            width: min(92vw, 760px);
+            background: #000;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .8);
+            overflow: hidden
+        }
+
+        .paper .head {
+            border-bottom: 1px solid var(--line)
+        }
+
+        .x {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            border: 1px solid var(--line);
+            background: #000;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer
+        }
+
+        /* ASCII hoodie block */
+        .ascii {
+            font-size: 10px;
+            line-height: 10px;
+            white-space: pre;
+            color: #fff;
+            opacity: .7;
+            overflow: auto;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #000
+        }
+
+        footer {
+            margin: 16px 0;
+            color: var(--muted);
+            font-size: .92rem
+        }
+    </style>
 </head>
+
 <body>
-  <canvas id="scope"></canvas>
-  <div class="grid" aria-hidden="true"></div>
+    <canvas id="scope"></canvas>
+    <div class="grid" aria-hidden="true"></div>
 
-  <main class="wrap">
-    <div class="top">
-      <div class="brand">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff"><path d="M3 3h7l-7 7V3Z"/><path d="M14 3h7l-7 7V3Z"/><path d="M3 14h7l-7 7v-7Z"/><path d="M14 14h7l-7 7v-7Z"/></svg>
-        <h1>Kali Oscilloscope Lab</h1>
-      </div>
-      <div class="sub">Strange monochrome console • Orbital dial • Tearable tickets • Copy to clipboard</div>
+    <main class="wrap">
+        <div class="top">
+            <div class="brand">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff">
+                    <path d="M3 3h7l-7 7V3Z" />
+                    <path d="M14 3h7l-7 7V3Z" />
+                    <path d="M3 14h7l-7 7v-7Z" />
+                    <path d="M14 14h7l-7 7v-7Z" />
+                </svg>
+                <h1>Kali Oscilloscope Lab</h1>
+            </div>
+            <div class="sub">Strange monochrome console • Orbital dial • Tearable tickets • Copy</div>
+            <nav><a href="./lifehack.html"
+                    style="color:#fff;text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.22)">Lifehack</a>
+            </nav>
+        </div>
+
+        <section class="cols">
+            <!-- Orbital dial -->
+            <aside class="dial">
+                <div class="face" id="face">
+                    <div class="orb">ALL</div>
+                    <!-- satellites injected by JS -->
+                </div>
+                <div class="bar"><button class="btn" id="spin">Spin</button><button class="btn"
+                        id="shuffle">Shuffle</button></div>
+                <div style="margin-top:12px" class="ascii" aria-label="ASCII hoodie">
+                    ███▓░░░░░░░▓███
+                    █░░░░░░░░░░░░░█
+                    ▓░░░░░▓▓▓░░░░░▓
+                    ░░░░░▓░░░▓░░░░░
+                    ░░░░▓░░░░░▓░░░░
+                    ░░░▓░░░░░░░▓░░░
+                    ░░▓░░░░░░░░░▓░░
+                    ░░░░░░░░░░░░░░░
+                </div>
+            </aside>
+
+            <!-- Ticket wall -->
+            <section class="wall" id="wall"></section>
+        </section>
+
+    </main>
+
+    <!-- Modal -->
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Ticket">
+        <div class="paper">
+            <button class="x" id="close">Close</button>
+            <div class="head">
+                <div class="head" style="padding:10px 12px;display:flex;justify-content:space-between">
+                    <div class="ttl" id="mttl"></div>
+                    <div class="cat" id="mcat"></div>
+                </div>
+            </div>
+            <div class="body" style="padding:12px">
+                <div class="cmdwrap">
+                    <pre id="mcmd"></pre><button class="copy" id="mcopy">Copy</button>
+                </div>
+                <div class="note" id="mnote"></div>
+                <div class="perforate" style="margin-top:12px"></div>
+            </div>
+        </div>
     </div>
 
-    <section class="cols">
-      <!-- Orbital dial -->
-      <aside class="dial">
-        <div class="face" id="face">
-          <div class="orb">ALL</div>
-          <!-- satellites injected by JS -->
-        </div>
-        <div class="bar"><button class="btn" id="spin">Spin</button><button class="btn" id="shuffle">Shuffle</button></div>
-        <div style="margin-top:12px" class="ascii" aria-label="ASCII hoodie">
-███▓░░░░░░░▓███
-█░░░░░░░░░░░░░█
-▓░░░░░▓▓▓░░░░░▓
-░░░░░▓░░░▓░░░░░
-░░░░▓░░░░░▓░░░░
-░░░▓░░░░░░░▓░░░
-░░▓░░░░░░░░░▓░░
-░░░░░░░░░░░░░░░
-        </div>
-      </aside>
+    <script>
+        // ===== Oscilloscope background =====
+        const scope = document.getElementById('scope');
+        const sctx = scope.getContext('2d');
+        let W, H, t = 0;
+        function fit() { W = scope.width = window.innerWidth; H = scope.height = window.innerHeight }
+        fit(); addEventListener('resize', fit);
+        function wave(y, freq, amp, phase) {
+            sctx.beginPath(); sctx.moveTo(0, y);
+            for (let x = 0; x < W; x++) {
+                const v = y + Math.sin((x + phase) / freq + t / 25) * amp * Math.sin(t / 37);
+                sctx.lineTo(x, v);
+            }
+            sctx.stroke();
+        }
+        function draw() {
+            sctx.fillStyle = 'rgba(0,0,0,1)'; sctx.fillRect(0, 0, W, H);
+            sctx.lineWidth = 1; sctx.globalAlpha = 0.5; sctx.strokeStyle = '#fff';
+            wave(H * 0.3, 40, 18, 0); wave(H * 0.5, 60, 24, 120); wave(H * 0.7, 30, 14, 260);
+            t++; requestAnimationFrame(draw);
+        } draw();
 
-      <!-- Ticket wall -->
-      <section class="wall" id="wall"></section>
-    </section>
+        // ===== Data (30 steps) =====
+        const steps = [
+            { cat: 'Core', ttl: 'Snapshot the VM', cmd: '(UI) VirtualBox/VMware → Take a snapshot before changes.', note: 'Roll back anytime.' },
+            { cat: 'Core', ttl: 'Update & reboot', cmd: 'sudo apt update && sudo apt full-upgrade -y && sudo reboot', note: 'Get latest fixes & tools.' },
+            { cat: 'Core', ttl: 'Guest tools', cmd: 'sudo apt install -y virtualbox-guest-x11\n# or\nsudo apt install -y open-vm-tools-desktop', note: 'Pick based on your hypervisor.' },
+            { cat: 'Core', ttl: 'Enable SSH (simple)', cmd: 'passwd\nsudo apt install -y openssh-server\nsudo systemctl enable --now ssh\nip a   # find VM IP\n# from HOST: ssh youruser@<vm-ip>' },
+            { cat: 'Core', ttl: 'Firewall (open SSH)', cmd: 'sudo apt install -y ufw\nsudo ufw default deny incoming\nsudo ufw default allow outgoing\nsudo ufw allow OpenSSH\nsudo ufw enable\nsudo ufw status' },
+            { cat: 'Core', ttl: 'Practice folders', cmd: 'mkdir -p ~/labs ~/notes', note: 'Keep experiments & notes separate.' },
+            { cat: 'Core', ttl: 'Time sync & DNS', cmd: 'sudo timedatectl set-ntp true\nresolvectl status' },
+            { cat: 'Tools', ttl: 'Basics & utilities', cmd: 'sudo apt install -y git curl wget unzip build-essential' },
+            { cat: 'Tools', ttl: 'APT basics', cmd: 'sudo apt install <package>\nsudo apt remove <package>\napt search <term>' },
+            { cat: 'Net', ttl: 'Safe local scan', cmd: 'sudo apt install -y nmap\nnmap -sV 127.0.0.1', note: 'Only scan what you own or are allowed to test.' },
+            { cat: 'Tools', ttl: 'Wordlists + nmap db', cmd: 'sudo apt install -y seclists\nsudo nmap --script-updatedb\n# optional: sudo gzip -d /usr/share/wordlists/rockyou.txt.gz' },
+            { cat: 'Tools', ttl: 'Shell helpers', cmd: 'sudo apt install -y zsh-autosuggestions zsh-syntax-highlighting fzf bat ripgrep fd-find tldr' },
+            { cat: 'Tools', ttl: 'Editors', cmd: 'sudo apt install -y nano vim code' },
+            { cat: 'Tools', ttl: 'Git identity', cmd: 'git config --global user.name "Your Name"\ngit config --global user.email you@example.com' },
+            { cat: 'Tools', ttl: 'SSH key for GitHub', cmd: 'ssh-keygen -t ed25519 -C "you@example.com"\ncat ~/.ssh/id_ed25519.pub\nssh -T git@github.com', note: 'Add the public key in GitHub settings.' },
+            { cat: 'Tools', ttl: 'Python basics', cmd: 'sudo apt install -y python3 python3-pip' },
+            { cat: 'Tools', ttl: 'HTTP tools', cmd: 'sudo apt install -y httpie curl' },
+            { cat: 'Net', ttl: 'Net utils', cmd: 'sudo apt install -y net-tools dnsutils traceroute' },
+            { cat: 'Net', ttl: 'Wireshark (opt)', cmd: 'sudo apt install -y wireshark && sudo usermod -aG wireshark $USER', note: 'Log out/in after adding group.' },
+            { cat: 'Tools', ttl: 'Hash tools', cmd: 'sudo apt install -y hashcat john' },
+            { cat: 'Tools', ttl: 'Dir discovery', cmd: 'sudo apt install -y gobuster dirb' },
+            { cat: 'Tools', ttl: 'Metasploit DB', cmd: 'sudo msfdb init' },
+            { cat: 'OPSEC', ttl: 'MAC randomize (opt)', cmd: 'sudo apt install -y macchanger' },
+            { cat: 'OPSEC', ttl: 'VPN / Tor (opt)', cmd: 'sudo apt install -y openvpn tor proxychains4' },
+            { cat: 'Learn', ttl: 'man pages', cmd: 'man nmap' },
+            { cat: 'Learn', ttl: 'TLDR quick help', cmd: 'tldr nmap' },
+            { cat: 'Learn', ttl: 'System info', cmd: 'neofetch || sudo apt install -y neofetch && neofetch' },
+            { cat: 'Learn', ttl: 'Hostname & IP', cmd: 'hostnamectl\nip -br a' },
+            { cat: 'OPSEC', ttl: 'Backup notes', cmd: 'cd ~/notes && git add . && git commit -m "progress"' },
+            { cat: 'OPSEC', ttl: 'Legal safety', cmd: '(Read) Only test systems you own or have written permission to test.' }
+        ];
 
-  </main>
+        // ===== Build satellites (categories) =====
+        const cats = [...new Set(steps.map(s => s.cat))];
+        const face = document.getElementById('face');
+        const radius = 120; // px
+        cats.forEach((c, i) => {
+            const angle = (i / cats.length) * Math.PI * 2 - Math.PI / 2;
+            const x = 160 + Math.cos(angle) * radius; // 320px face width -> center ~160
+            const y = 160 + Math.sin(angle) * radius;
+            const b = document.createElement('button');
+            b.className = 'sat'; b.textContent = c; b.style.left = x + 'px'; b.style.top = y + 'px';
+            b.addEventListener('click', () => filter(c));
+            face.appendChild(b);
+        });
 
-  <!-- Modal -->
-  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Ticket">
-    <div class="paper">
-      <button class="x" id="close">Close</button>
-      <div class="head"><div class="head" style="padding:10px 12px;display:flex;justify-content:space-between"><div class="ttl" id="mttl"></div><div class="cat" id="mcat"></div></div></div>
-      <div class="body" style="padding:12px">
-        <div class="cmdwrap"><pre id="mcmd"></pre><button class="copy" id="mcopy">Copy</button></div>
-        <div class="note" id="mnote"></div>
-        <div class="perforate" style="margin-top:12px"></div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // ===== Oscilloscope background =====
-    const scope = document.getElementById('scope');
-    const sctx = scope.getContext('2d');
-    let W, H, t = 0;
-    function fit(){W = scope.width = window.innerWidth; H = scope.height = window.innerHeight}
-    fit(); addEventListener('resize', fit);
-    function wave(y, freq, amp, phase){
-      sctx.beginPath(); sctx.moveTo(0, y);
-      for(let x=0;x<W;x++){
-        const v = y + Math.sin((x+phase)/freq + t/25)*amp*Math.sin(t/37);
-        sctx.lineTo(x, v);
-      }
-      sctx.stroke();
-    }
-    function draw(){
-      sctx.fillStyle = 'rgba(0,0,0,1)'; sctx.fillRect(0,0,W,H);
-      sctx.lineWidth = 1; sctx.globalAlpha = 0.5; sctx.strokeStyle = '#fff';
-      wave(H*0.3, 40, 18, 0); wave(H*0.5, 60, 24, 120); wave(H*0.7, 30, 14, 260);
-      t++; requestAnimationFrame(draw);
-    } draw();
-
-    // ===== Data (30 steps) =====
-    const steps = [
-      {cat:'Core', ttl:'Snapshot the VM', cmd:'(UI) VirtualBox/VMware → Take a snapshot before changes.', note:'Roll back anytime.'},
-      {cat:'Core', ttl:'Update & reboot', cmd:'sudo apt update && sudo apt full-upgrade -y && sudo reboot', note:'Get latest fixes & tools.'},
-      {cat:'Core', ttl:'Guest tools', cmd:'sudo apt install -y virtualbox-guest-x11\n# or\nsudo apt install -y open-vm-tools-desktop', note:'Pick based on your hypervisor.'},
-      {cat:'Core', ttl:'Enable SSH (simple)', cmd:'passwd\nsudo apt install -y openssh-server\nsudo systemctl enable --now ssh\nip a   # find VM IP\n# from HOST: ssh youruser@<vm-ip>'},
-      {cat:'Core', ttl:'Firewall (open SSH)', cmd:'sudo apt install -y ufw\nsudo ufw default deny incoming\nsudo ufw default allow outgoing\nsudo ufw allow OpenSSH\nsudo ufw enable\nsudo ufw status'},
-      {cat:'Core', ttl:'Practice folders', cmd:'mkdir -p ~/labs ~/notes', note:'Keep experiments & notes separate.'},
-      {cat:'Core', ttl:'Time sync & DNS', cmd:'sudo timedatectl set-ntp true\nresolvectl status'},
-      {cat:'Tools', ttl:'Basics & utilities', cmd:'sudo apt install -y git curl wget unzip build-essential'},
-      {cat:'Tools', ttl:'APT basics', cmd:'sudo apt install <package>\nsudo apt remove <package>\napt search <term>'},
-      {cat:'Net', ttl:'Safe local scan', cmd:'sudo apt install -y nmap\nnmap -sV 127.0.0.1', note:'Only scan what you own or are allowed to test.'},
-      {cat:'Tools', ttl:'Wordlists + nmap db', cmd:'sudo apt install -y seclists\nsudo nmap --script-updatedb\n# optional: sudo gzip -d /usr/share/wordlists/rockyou.txt.gz'},
-      {cat:'Tools', ttl:'Shell helpers', cmd:'sudo apt install -y zsh-autosuggestions zsh-syntax-highlighting fzf bat ripgrep fd-find tldr'},
-      {cat:'Tools', ttl:'Editors', cmd:'sudo apt install -y nano vim code'},
-      {cat:'Tools', ttl:'Git identity', cmd:'git config --global user.name "Your Name"\ngit config --global user.email you@example.com'},
-      {cat:'Tools', ttl:'SSH key for GitHub', cmd:'ssh-keygen -t ed25519 -C "you@example.com"\ncat ~/.ssh/id_ed25519.pub\nssh -T git@github.com', note:'Add the public key in GitHub settings.'},
-      {cat:'Tools', ttl:'Python basics', cmd:'sudo apt install -y python3 python3-pip'},
-      {cat:'Tools', ttl:'HTTP tools', cmd:'sudo apt install -y httpie curl'},
-      {cat:'Net', ttl:'Net utils', cmd:'sudo apt install -y net-tools dnsutils traceroute'},
-      {cat:'Net', ttl:'Wireshark (opt)', cmd:'sudo apt install -y wireshark && sudo usermod -aG wireshark $USER', note:'Log out/in after adding group.'},
-      {cat:'Tools', ttl:'Hash tools', cmd:'sudo apt install -y hashcat john'},
-      {cat:'Tools', ttl:'Dir discovery', cmd:'sudo apt install -y gobuster dirb'},
-      {cat:'Tools', ttl:'Metasploit DB', cmd:'sudo msfdb init'},
-      {cat:'OPSEC', ttl:'MAC randomize (opt)', cmd:'sudo apt install -y macchanger'},
-      {cat:'OPSEC', ttl:'VPN / Tor (opt)', cmd:'sudo apt install -y openvpn tor proxychains4'},
-      {cat:'Learn', ttl:'man pages', cmd:'man nmap'},
-      {cat:'Learn', ttl:'TLDR quick help', cmd:'tldr nmap'},
-      {cat:'Learn', ttl:'System info', cmd:'neofetch || sudo apt install -y neofetch && neofetch'},
-      {cat:'Learn', ttl:'Hostname & IP', cmd:'hostnamectl\nip -br a'},
-      {cat:'OPSEC', ttl:'Backup notes', cmd:'cd ~/notes && git add . && git commit -m "progress"'},
-      {cat:'OPSEC', ttl:'Legal safety', cmd:'(Read) Only test systems you own or have written permission to test.'}
-    ];
-
-    // ===== Build satellites (categories) =====
-    const cats = [...new Set(steps.map(s=>s.cat))];
-    const face = document.getElementById('face');
-    const radius = 120; // px
-    cats.forEach((c,i)=>{
-      const angle = (i/cats.length)*Math.PI*2 - Math.PI/2;
-      const x = 160 + Math.cos(angle)*radius; // 320px face width -> center ~160
-      const y = 160 + Math.sin(angle)*radius;
-      const b = document.createElement('button');
-      b.className = 'sat'; b.textContent = c; b.style.left = x+'px'; b.style.top = y+'px';
-      b.addEventListener('click', ()=>filter(c));
-      face.appendChild(b);
-    });
-
-    // ===== Render ticket wall =====
-    const wall = document.getElementById('wall');
-    function render(list){
-      wall.innerHTML = '';
-      list.forEach((s, idx)=>{
-        const el = document.createElement('article'); el.className = 'ticket';
-        el.innerHTML = `<div class="head"><div class="ttl">${idx+1} — ${s.ttl}</div><div class="cat">${s.cat}</div></div>
-          <div class="body"><div class="cmdwrap"><pre>${s.cmd}</pre><button class="copy">Copy</button></div>${s.note?`<div class="note">${s.note}</div>`:''}
+        // ===== Render ticket wall =====
+        const wall = document.getElementById('wall');
+        function render(list) {
+            wall.innerHTML = '';
+            list.forEach((s, idx) => {
+                const el = document.createElement('article'); el.className = 'ticket';
+                el.innerHTML = `<div class="head"><div class="ttl">${idx + 1} — ${s.ttl}</div><div class="cat">${s.cat}</div></div>
+          <div class="body"><div class="cmdwrap"><pre>${s.cmd}</pre><button class="copy">Copy</button></div>${s.note ? `<div class="note">${s.note}</div>` : ''}
           <div class="perforate"></div></div>`;
-        // copy
-        el.querySelector('.copy').addEventListener('click', async (e)=>{
-          try{await navigator.clipboard.writeText(s.cmd); e.target.textContent='Copied'; setTimeout(()=>e.target.textContent='Copy',1000);}catch{alert('Copy failed — copy manually')}});
-        // open modal on head click
-        el.querySelector('.head').addEventListener('click', ()=>openModal(s));
-        wall.appendChild(el);
-      });
-    }
-    render(steps);
+                // copy
+                el.querySelector('.copy').addEventListener('click', async (e) => {
+                    try { await navigator.clipboard.writeText(s.cmd); e.target.textContent = 'Copied'; setTimeout(() => e.target.textContent = 'Copy', 1000); } catch { alert('Copy failed — copy manually') }
+                });
+                // open modal on head click
+                el.querySelector('.head').addEventListener('click', () => openModal(s));
+                wall.appendChild(el);
+            });
+        }
+        render(steps);
 
-    // ===== Modal logic =====
-    const modal = document.getElementById('modal');
-    const mttl = document.getElementById('mttl');
-    const mcat = document.getElementById('mcat');
-    const mcmd = document.getElementById('mcmd');
-    const mcopy = document.getElementById('mcopy');
-    function openModal(s){
-      mttl.textContent = s.ttl; mcat.textContent = s.cat; mcmd.textContent = s.cmd; modal.style.display = 'flex';
-    }
-    document.getElementById('close').addEventListener('click', ()=>modal.style.display='none');
-    modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.style.display='none'; });
-    mcopy.addEventListener('click', async()=>{ try{ await navigator.clipboard.writeText(mcmd.textContent); mcopy.textContent='Copied'; setTimeout(()=>mcopy.textContent='Copy',1000);}catch{alert('Copy failed')}});
+        // ===== Modal logic =====
+        const modal = document.getElementById('modal');
+        const mttl = document.getElementById('mttl');
+        const mcat = document.getElementById('mcat');
+        const mcmd = document.getElementById('mcmd');
+        const mcopy = document.getElementById('mcopy');
+        function openModal(s) {
+            mttl.textContent = s.ttl; mcat.textContent = s.cat; mcmd.textContent = s.cmd; modal.style.display = 'flex';
+        }
+        document.getElementById('close').addEventListener('click', () => modal.style.display = 'none');
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+        mcopy.addEventListener('click', async () => { try { await navigator.clipboard.writeText(mcmd.textContent); mcopy.textContent = 'Copied'; setTimeout(() => mcopy.textContent = 'Copy', 1000); } catch { alert('Copy failed') } });
 
-    // ===== Filtering, spin, shuffle =====
-    function filter(cat){ render(steps.filter(s=>s.cat===cat)); }
-    document.querySelector('#spin').addEventListener('click', ()=>{
-      face.style.transition = 'transform .7s cubic-bezier(.2,.7,.1,1)';
-      const rot = (Math.random()*360)|0; face.style.transform = `rotate(${rot}deg)`;
-      setTimeout(()=>face.style.transition='', 800);
-    });
-    document.querySelector('#shuffle').addEventListener('click', ()=>{
-      const shuffled = steps.slice().sort(()=>Math.random()-0.5); render(shuffled);
-    });
-  </script>
+        // ===== Filtering, spin, shuffle =====
+        function filter(cat) { render(steps.filter(s => s.cat === cat)); }
+        document.querySelector('#spin').addEventListener('click', () => {
+            face.style.transition = 'transform .7s cubic-bezier(.2,.7,.1,1)';
+            const rot = (Math.random() * 360) | 0; face.style.transform = `rotate(${rot}deg)`;
+            setTimeout(() => face.style.transition = '', 800);
+        });
+        document.querySelector('#shuffle').addEventListener('click', () => {
+            const shuffled = steps.slice().sort(() => Math.random() - 0.5); render(shuffled);
+        });
+    </script>
 </body>
+
 </html>
